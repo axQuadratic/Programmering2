@@ -3,11 +3,12 @@ import os
 import atexit
 import pickle
 import sys
+from math import pow
 
 work_list = {
-    "books": [Nonfiction("Travelling at Night, Vol. 1", 1923, False, "The Malleary", True, None, "Christopher Illopoly", 1, "Nyctrodomy")],
-    "audiobooks": [Audiobook("Travelling at Night, Vol. 1", 2011, False, "The Haustorum", True, "Maltese Audiobooks Inc.", None, "Maltese Man")],
-    "hentai": [Hentai("Metamorphosis", 2013, False, "Hell", True, "Pain", "Art", "FAKKU", False)]
+    "books": [Nonfiction("Travelling at Night, Vol. 1", 1923, False, "The Malleary", True, 0, None, "Christopher Illopoly", 1, "Nyctrodomy")],
+    "audiobooks": [Audiobook("Travelling at Night, Vol. 1", 2011, False, "The Haustorum", True, 0, "Maltese Audiobooks Inc.", None, "Maltese Man")],
+    "hentai": [Hentai("Metamorphosis", 2013, False, "Hell", True, 0, "Pain", "Art", "FAKKU", False)]
 }
 
 def main():
@@ -51,7 +52,7 @@ def view_work(work):
     properties = vars(work)
     print(properties["title"])
     for i in list(properties.keys()):
-        if i == "title": continue
+        if i == "title" or i == "borrowed_at": continue
         print(f"{i.replace('_', ' ').capitalize()} - {properties[i]}")
 
     cur_cat = None
@@ -93,8 +94,12 @@ def view_work(work):
                 sys.exit()
             main()
 
-        work_list[cur_cat][cur_index].restore()
-        input(f"{work.title} has been restored.\n")
+        days_passed = work_list[cur_cat][cur_index].restore()
+        debt = round(pow(1.25, (days_passed - 2)))
+        if debt >= 1:
+            input(f"{work.title} has been restored; you now owe the library ${debt}.")
+        else:
+            input(f"{work.title} has been restored.\n")
 
     main()
 
