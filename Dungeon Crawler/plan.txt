@@ -1,0 +1,6 @@
+- Textbaserad dungeon crawler, körs i terminalen
+- Spelaren rör sig runt en slumpmässigt genererad karta och får tillgång till equipment och uppgraderingar
+    - Inkludera ett Combat System (kanske löst baserat på mitt halvklara TTRPG från sommaren)
+- Alla delar bör vara turbaserade
+- Inkludera roguelike gameplay?
+    - Uppgraderingar som kvarstår mellan playthroughs
