@@ -31,6 +31,7 @@ def begin_playthrough():
     active_hotkeys["A"] = kb.add_hotkey("A", lambda: explore_turn([o.player.location[0] - 1, o.player.location[1]]))
     active_hotkeys["S"] = kb.add_hotkey("S", lambda: explore_turn([o.player.location[0], o.player.location[1] + 1]))
     active_hotkeys["D"] = kb.add_hotkey("D", lambda: explore_turn([o.player.location[0] + 1, o.player.location[1]]))
+    active_hotkeys["I"] = kb.add_hotkey("I", view_inventory)
 
     a.generate_map()
     explore_turn(o.player.location)
@@ -42,11 +43,15 @@ def explore_turn(new_location):
 
     clear()
 
+    if new_location[0] < 0 or new_location[1] < 0:
+        draw_ui()
+        return
     try:
         o.current_map.discovered[new_location[1]][new_location[0]] = True
     except IndexError:
         draw_ui()
         return
+
     o.player.location = [new_location[0], new_location[1]]
 
     ui_health_change = 0
@@ -115,11 +120,20 @@ def take_action(action):
     explore_turn(o.player.location)
 
 def view_inventory():
+    kb.press("Enter")
+    input()
+    kb.release("Enter")
+    clear()
     inventory_text = [
         "Hull Integrity:",
-        f"{o.player.current_hp:04}/{o.player.max_hp:04} " + ascii.create_health_bar("green", 20, o.player.current_hp, o.player.max_hp),
+        f"{o.player.current_hp:04}/{o.player.max_hp:04} " + ascii.create_health_bar("green", 27, o.player.current_hp, o.player.max_hp) + generate_tc_padding(19, None),
         f"Weapon: Mass Drivers [DMG/t {o.player.base_dmg}]"
     ]
+    inventory_box = ascii.InfoBox("white", 60, 3, f"The Status of the {o.player.username}", inventory_text)
+    ascii.draw_message_box([inventory_box])
+    input("[Enter] Exit ")
+    clear()
+    draw_ui()
 
 def clear():
     os.system("cls" if os.name == "nt" else "clear")
@@ -127,8 +141,9 @@ def clear():
 # Hack to prevent breaking infobox borders; adjust on case-by-case basis
 def generate_tc_padding(chars : int, variables : list):
     subtract_chars = 0
-    for variable in variables:
-        subtract_chars += len(str(variable))
+    if variables is not None:
+        for variable in variables:
+            subtract_chars += len(str(variable))
     pad_string = []
     for i in range(chars - subtract_chars):
         pad_string.append(" ")
