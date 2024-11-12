@@ -7,10 +7,9 @@ import objects as o
 import ascii
 import flavor
 import actions as a
+import combat as c
 
 ui_health_change = 0
-
-active_hotkeys = {}
 
 def main():
     start_campaign()
@@ -27,16 +26,23 @@ def begin_playthrough():
 
     input(f"The {o.player.username} sets out on another journey...\n")
 
-    active_hotkeys["W"] = kb.add_hotkey("W", lambda: explore_turn([o.player.location[0], o.player.location[1] - 1]))
-    active_hotkeys["A"] = kb.add_hotkey("A", lambda: explore_turn([o.player.location[0] - 1, o.player.location[1]]))
-    active_hotkeys["S"] = kb.add_hotkey("S", lambda: explore_turn([o.player.location[0], o.player.location[1] + 1]))
-    active_hotkeys["D"] = kb.add_hotkey("D", lambda: explore_turn([o.player.location[0] + 1, o.player.location[1]]))
-    active_hotkeys["I"] = kb.add_hotkey("I", view_inventory)
+    create_movement_hotkeys()
 
     a.generate_map()
     explore_turn(o.player.location)
 
     kb.wait("esc")
+
+def create_movement_hotkeys():
+    o.active_hotkeys["8"] = kb.add_hotkey("8", lambda: explore_turn([o.player.location[0], o.player.location[1] - 1]))
+    o.active_hotkeys["4"] = kb.add_hotkey("4", lambda: explore_turn([o.player.location[0] - 1, o.player.location[1]]))
+    o.active_hotkeys["2"] = kb.add_hotkey("2", lambda: explore_turn([o.player.location[0], o.player.location[1] + 1]))
+    o.active_hotkeys["6"] = kb.add_hotkey("6", lambda: explore_turn([o.player.location[0] + 1, o.player.location[1]]))
+    o.active_hotkeys["7"] = kb.add_hotkey("7", lambda: explore_turn([o.player.location[0] - 1, o.player.location[1] - 1]))
+    o.active_hotkeys["9"] = kb.add_hotkey("9", lambda: explore_turn([o.player.location[0] + 1, o.player.location[1] - 1]))
+    o.active_hotkeys["1"] = kb.add_hotkey("1", lambda: explore_turn([o.player.location[0] - 1, o.player.location[1] + 1]))
+    o.active_hotkeys["3"] = kb.add_hotkey("3", lambda: explore_turn([o.player.location[0] + 1, o.player.location[1] + 1]))
+    o.active_hotkeys["I"] = kb.add_hotkey("I", view_inventory)
 
 def explore_turn(new_location):
     global ui_health_change
@@ -57,17 +63,24 @@ def explore_turn(new_location):
     ui_health_change = 0
 
     # Remove extraneous hotkeys
-    if "E" in active_hotkeys.keys():
-        kb.remove_hotkey(active_hotkeys["E"])
-        del active_hotkeys["E"]
+    if "E" in o.active_hotkeys.keys():
+        kb.remove_hotkey(o.active_hotkeys["E"])
+        del o.active_hotkeys["E"]
 
-    if o.current_map.data[o.player.location[1]][o.player.location[0]].terrain.type == map.terrain_types.asteroids:
+    terrain_type = o.current_map.data[o.player.location[1]][o.player.location[0]].terrain.type
+    if terrain_type == map.terrain_types.asteroids:
         o.player.current_hp -= 4
         ui_health_change -= 4
 
+    if terrain_type == map.terrain_types.hostile:
+        c.begin_combat(o.player, r.choice(o.enemies))
+        input()
+        clear()
+        create_movement_hotkeys()
+
     if o.player.current_hp <= 0:
         o.player.current_hp = 0
-        for hotkey in list(active_hotkeys.keys()):
+        for hotkey in list(o.active_hotkeys.keys()):
             kb.remove_hotkey(hotkey)
 
     draw_ui()
@@ -100,7 +113,7 @@ def draw_ui():
     action_text = ["[I] View ship statistics"]
     if current_tile.action is not None:
         action_text.append("[E] " + current_tile.action.name)
-        active_hotkeys["E"] = kb.add_hotkey("E", lambda: take_action(current_tile.action))
+        o.active_hotkeys["E"] = kb.add_hotkey("E", lambda: take_action(current_tile.action))
 
     o.current_map.draw(o.player.location)
     print("")
@@ -111,8 +124,11 @@ def draw_ui():
     ascii.draw_message_box([report_box])
     ascii.draw_message_box([status_box, interact_box])
     if o.player.current_hp <= 0:
-        death_box = ascii.InfoBox("light_magenta", 60, 1, f"The Destruction of the {o.player.username}", r.choice(flavor.death_text) + ["[ESC] Exit..."])
+        death_box = ascii.InfoBox("light_magenta", 60, 1, f"The Destruction of the {o.player.username}", r.choice(flavor.death_text) + [f"[You survived {o.map_count} sectors.]","[ESC] Exit..."])
         ascii.draw_message_box([death_box])
+    if o.upgrade_box is not None:
+        ascii.draw_message_box([o.upgrade_box])
+        o.upgrade_box = None
 
 def take_action(action):
     # Execute an action, then reload the current map
@@ -127,9 +143,11 @@ def view_inventory():
     inventory_text = [
         "Hull Integrity:",
         f"{o.player.current_hp:04}/{o.player.max_hp:04} " + ascii.create_health_bar("green", 27, o.player.current_hp, o.player.max_hp) + generate_tc_padding(19, None),
-        f"Weapon: Mass Drivers [DMG/t {o.player.base_dmg}]"
+        f"Weapon: Mass Drivers [DMG/t {o.player.base_dmg}]",
+        f"Overshield Strength: {o.player.defense}",
+        f"Sectors Survived: {o.map_count}"
     ]
-    inventory_box = ascii.InfoBox("white", 60, 3, f"The Status of the {o.player.username}", inventory_text)
+    inventory_box = ascii.InfoBox("white", 60, 5, f"The Status of the {o.player.username}", inventory_text)
     ascii.draw_message_box([inventory_box])
     input("[Enter] Exit ")
     clear()

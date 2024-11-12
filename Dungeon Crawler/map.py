@@ -12,8 +12,11 @@ class terrain_types(Enum):
      asteroids = "%"
      orbit = "O"
      trade_post = tc.colored("T", "light_green")
+     trade_post_empty = "T"
+     hostile = tc.colored("Û", "light_red")
+     defeated = "Û"
 
-terrain_weights = [0, 0, 20, 3, 1, 1]
+terrain_weights = [0, 0, 60, 6, 2, 1, 0, 1, 0]
 
 class Terrain():
         def __init__(self):
@@ -48,13 +51,21 @@ class Map():
 
         self.data[self.start_location[1]][self.start_location[0]].terrain.set_type(terrain_types.entry_point)
         self.data[self.exit_location[1]][self.exit_location[0]].terrain.set_type(terrain_types.exit_point)
-        self.data[self.exit_location[1]][self.exit_location[0]].action = a.a_next_map
+
+        for y in range(len(self.data)):
+            for x in range(len(self.data[y])):
+                if self.data[y][x].terrain.type == terrain_types.exit_point:
+                    self.data[y][x].action = a.a_next_map
+                elif self.data[y][x].terrain.type == terrain_types.trade_post:
+                    self.data[y][x].action = a.a_receive_upgrade
+                elif self.data[y][x].terrain.type == terrain_types.trade_post_empty:
+                    self.data[y][x].action = a.a_repair
 
     def draw(self, player_pos):
         for y in range(len(self.data)):
             for x in range(len(self.data[y])):
                 if player_pos[0] == x and player_pos[1] == y:
-                    print("["+ tc.colored("@", "light_blue") +"]", end="")
+                    print("["+ tc.colored("Û", "light_blue") +"]", end="")
                 elif not self.discovered[y][x]:
                     print(tc.colored("[?]", "red"), end="")
                 else:

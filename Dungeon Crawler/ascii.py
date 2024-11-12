@@ -10,7 +10,7 @@ class InfoBox:
         self.lines = lines
 
 def draw_message_box(box_data):
-    lines = ["" for i in range(10)]
+    lines = ["" for i in range(100)]
     for box in box_data:
         lines[0] += "".join([tc.colored("=", box.border_color) for i in range(math.floor((box.char_width - len(box.title)) / 2))]) + box.title + "".join([tc.colored("=", box.border_color) for i in range(math.ceil((box.char_width - len(box.title)) / 2))]) + " "
 
@@ -21,9 +21,8 @@ def draw_message_box(box_data):
         i = 1
         for line in box.lines:
             lines[i] += tc.colored("|", box.border_color) + line + "".join(" " for i in range(box.char_width - len(line) - 2)) + tc.colored("|", box.border_color) + " "
-
             i += 1
-        
+
         lines[i] += "".join([tc.colored("=", box.border_color) for i in range(box.char_width)]) + " "
 
     for line in lines:

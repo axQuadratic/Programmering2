@@ -28,6 +28,23 @@ location_text = {
         ["The station in this region responds to communications,",
          "and cordially invites us to pay a visit."]
     ],
+    "trade_post_empty": [
+        ["We have already visited the station which",
+         "has been established in this region."],
+        ["Scans reveal a starbase in this region.",
+         "Docking would be possible, although we have",
+         "already employed all its resources of use to us."],
+        ["The station in this region responds to communications.",
+         "We have already made use of its services."]
+    ],
+    "hostile":[
+        ["There are hostiles in this region!"]
+    ],
+    "defeated":[
+        ["This region is a recently-created scrapyard."],
+        ["This sector is littered with debris from",
+         "destroyed ships, courtesy of yours truly."]
+    ],
     "entry_point": [
         ["This is a hyperlane exit point.",
          "The ship's recent passage has destabilised it."],
